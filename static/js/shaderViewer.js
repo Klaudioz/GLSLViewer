@@ -27,7 +27,6 @@ class ShaderViewer {
     }
     
     init() {
-        // Force WebGL1
         this.renderer.getContext().getExtension('WEBGL_depth_texture');
         this.renderer.getContext().getExtension('OES_standard_derivatives');
         
@@ -37,26 +36,66 @@ class ShaderViewer {
             this.renderer.domElement.clientHeight
         );
         
-        // Initialize CodeMirror
         this.initCodeEditor();
-        
-        // Load default shaders
         this.loadShaders();
+        this.setupShaderManagement();
         
-        // Handle window resize
         window.addEventListener('resize', this.onResize.bind(this));
         this.onResize();
         
-        // Setup apply button
-        document.getElementById('applyShaderBtn').addEventListener('click', () => {
-            this.applyShaderChanges();
+        this.setupParameterControls();
+        this.animate();
+    }
+
+    setupShaderManagement() {
+        // Save shader functionality
+        document.getElementById('confirmSaveShader').addEventListener('click', () => {
+            const name = document.getElementById('shaderName').value;
+            if (!name) return;
+
+            const code = this.editor.getValue();
+            fetch('/api/shaders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, code })
+            })
+            .then(response => response.json())
+            .then(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('saveShaderModal'));
+                modal.hide();
+                document.getElementById('shaderName').value = '';
+            });
         });
 
-        // Setup parameter controls
-        this.setupParameterControls();
-        
-        // Start animation loop
-        this.animate();
+        // Load shader list
+        document.getElementById('loadShaderBtn').addEventListener('click', () => {
+            fetch('/api/shaders')
+                .then(response => response.json())
+                .then(shaders => {
+                    const shaderList = document.getElementById('shaderList');
+                    shaderList.innerHTML = '';
+                    shaders.forEach(shader => {
+                        const item = document.createElement('button');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.textContent = shader.name;
+                        item.addEventListener('click', () => this.loadShader(shader.id));
+                        shaderList.appendChild(item);
+                    });
+                });
+        });
+    }
+
+    loadShader(shaderId) {
+        fetch(`/api/shaders/${shaderId}`)
+            .then(response => response.json())
+            .then(shader => {
+                this.editor.setValue(shader.code);
+                this.applyShaderChanges();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('loadShaderModal'));
+                modal.hide();
+            });
     }
 
     setupParameterControls() {
@@ -129,8 +168,6 @@ class ShaderViewer {
             );
             
             this.scene.add(this.currentMesh);
-            
-            // Hide error display if it was shown
             document.getElementById('error-display').classList.add('d-none');
         } catch (error) {
             this.handleError(error);
@@ -177,5 +214,4 @@ class ShaderViewer {
     }
 }
 
-// Initialize viewer
 const viewer = new ShaderViewer();
