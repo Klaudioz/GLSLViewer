@@ -5,7 +5,8 @@ uniform float hue_shift;
 uniform float saturation;
 uniform float brightness;
 uniform float shape_scale;
-#define FC gl_FragCoord
+
+varying vec2 vUv;
 
 // HSV to RGB conversion function
 vec3 hsv(float h, float s, float v) {
@@ -22,7 +23,7 @@ void main() {
     float s = 0.0;
     vec3 q = vec3(0.0);
     vec3 p;
-    vec3 d = vec3(FC.xy/r+vec2(-.5,.4),1);
+    vec3 d = vec3(gl_FragCoord.xy/r+vec2(-.5,.4),1);
 
     for(q.zy = vec2(-1.0); i < 99.0; i++) {
         o.rgb += hsv(e*R,-.6,e/12.);
