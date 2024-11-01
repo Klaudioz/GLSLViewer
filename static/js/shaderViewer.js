@@ -11,7 +11,12 @@ class ShaderViewer {
         this.isPlaying = true;
         this.uniforms = {
             t: { value: 0 },
-            r: { value: new THREE.Vector2() }
+            r: { value: new THREE.Vector2() },
+            speed: { value: 1.0 },
+            hue_shift: { value: 0.0 },
+            saturation: { value: 1.0 },
+            brightness: { value: 1.0 },
+            shape_scale: { value: 1.0 }
         };
         
         this.editor = null;
@@ -22,6 +27,10 @@ class ShaderViewer {
     }
     
     init() {
+        // Force WebGL1
+        this.renderer.getContext().getExtension('WEBGL_depth_texture');
+        this.renderer.getContext().getExtension('OES_standard_derivatives');
+        
         this.camera.position.z = 1;
         this.renderer.setSize(
             this.renderer.domElement.clientWidth,
@@ -42,9 +51,38 @@ class ShaderViewer {
         document.getElementById('applyShaderBtn').addEventListener('click', () => {
             this.applyShaderChanges();
         });
+
+        // Setup parameter controls
+        this.setupParameterControls();
         
         // Start animation loop
         this.animate();
+    }
+
+    setupParameterControls() {
+        const controls = {
+            'speed': { min: 0, max: 2, step: 0.1, default: 1.0 },
+            'hue_shift': { min: 0, max: 1, step: 0.1, default: 0.0 },
+            'saturation': { min: 0, max: 2, step: 0.1, default: 1.0 },
+            'brightness': { min: 0, max: 2, step: 0.1, default: 1.0 },
+            'shape_scale': { min: 0.1, max: 2, step: 0.1, default: 1.0 }
+        };
+
+        Object.entries(controls).forEach(([param, config]) => {
+            const input = document.getElementById(`${param}-control`);
+            const value = document.getElementById(`${param}-value`);
+            
+            if (input && value) {
+                input.value = config.default;
+                value.textContent = config.default;
+                
+                input.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    this.uniforms[param].value = val;
+                    value.textContent = val.toFixed(1);
+                });
+            }
+        });
     }
     
     initCodeEditor() {
