@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLSL Shader Viewer</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="mb-4">GLSL Shader Viewer</h1>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div id="shader-container" class="mb-4">
+                    <canvas id="shader-canvas"></canvas>
+                </div>
+                
+                <div class="controls mb-4">
+                    <button id="playPauseBtn" class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Play/Pause
+                    </button>
+                    <button id="resetBtn" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Shader Code
+                    </div>
+                    <div class="card-body">
+                        <div id="shader-code" class="code-display"></div>
+                    </div>
+                </div>
+                
+                <div id="error-display" class="alert alert-danger mt-3 d-none">
+                    <h5>Shader Compilation Error:</h5>
+                    <pre id="error-message"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-code.js"></script>
+    <script src="{{ url_for('static', filename='js/shaderViewer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/controls.js') }}"></script>
+</body>
+</html>
