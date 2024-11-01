@@ -39,3 +39,19 @@
     white-space: pre-wrap;
     word-wrap: break-word;
 }
+
+#save-status {
+    font-size: 12px;
+}
+
+#save-status.unsaved {
+    color: var(--bs-danger);
+}
+
+#save-status.saved {
+    color: var(--bs-success);
+}
+
+#current-shader-name {
+    font-weight: 500;
+}

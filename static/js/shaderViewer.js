@@ -22,6 +22,9 @@ class ShaderViewer {
         this.editor = null;
         this.currentMesh = null;
         this.vertexShader = '';
+        this.currentShaderName = 'Untitled';
+        this.currentShaderId = null;
+        this.isModified = false;
         
         this.init();
     }
@@ -62,7 +65,11 @@ class ShaderViewer {
                 body: JSON.stringify({ name, code })
             })
             .then(response => response.json())
-            .then(() => {
+            .then(shader => {
+                this.currentShaderName = shader.name;
+                this.currentShaderId = shader.id;
+                this.updateSaveStatus(true);
+                this.updateShaderNameDisplay();
                 const modal = bootstrap.Modal.getInstance(document.getElementById('saveShaderModal'));
                 modal.hide();
                 document.getElementById('shaderName').value = '';
@@ -85,17 +92,37 @@ class ShaderViewer {
                     });
                 });
         });
+
+        // Set up real-time code change tracking
+        this.editor.on('change', () => {
+            this.updateSaveStatus(false);
+            this.applyShaderChanges();
+        });
     }
 
     loadShader(shaderId) {
         fetch(`/api/shaders/${shaderId}`)
             .then(response => response.json())
             .then(shader => {
+                this.currentShaderName = shader.name;
+                this.currentShaderId = shader.id;
                 this.editor.setValue(shader.code);
+                this.updateSaveStatus(true);
+                this.updateShaderNameDisplay();
                 this.applyShaderChanges();
                 const modal = bootstrap.Modal.getInstance(document.getElementById('loadShaderModal'));
                 modal.hide();
             });
+    }
+
+    updateSaveStatus(saved) {
+        this.isModified = !saved;
+        const statusDot = document.getElementById('save-status');
+        statusDot.className = saved ? 'saved' : 'unsaved';
+    }
+
+    updateShaderNameDisplay() {
+        document.getElementById('current-shader-name').textContent = this.currentShaderName;
     }
 
     setupParameterControls() {
@@ -146,6 +173,8 @@ class ShaderViewer {
                     .then(fragmentShader => {
                         this.editor.setValue(fragmentShader);
                         this.createShaderMaterial(vertexShader, fragmentShader);
+                        this.updateSaveStatus(true);
+                        this.updateShaderNameDisplay();
                     });
             });
     }
