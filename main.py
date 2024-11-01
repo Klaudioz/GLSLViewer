@@ -1,6 +1,10 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, send_file
 from flask_sqlalchemy import SQLAlchemy
 import os
+import base64
+import subprocess
+import tempfile
+from pathlib import Path
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shaders.db'
@@ -50,6 +54,53 @@ def get_shader(shader_id):
         return jsonify({'id': shader.id, 'name': shader.name, 'code': shader.code})
     except Exception as e:
         return jsonify({'error': str(e)}), 404
+
+@app.route('/api/export', methods=['POST'])
+def export_video():
+    try:
+        data = request.get_json()
+        frames = data.get('frames', [])
+        fps = data.get('fps', 30)
+        
+        if not frames:
+            return jsonify({'error': 'No frames provided'}), 400
+
+        # Create temporary directory for frames
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Save frames as PNG files
+            for i, frame_data in enumerate(frames):
+                frame_path = Path(temp_dir) / f'frame_{i:04d}.png'
+                with open(frame_path, 'wb') as f:
+                    f.write(base64.b64decode(frame_data))
+
+            # Output video path
+            output_path = Path(temp_dir) / 'output.mp4'
+
+            # Use ffmpeg to create video
+            cmd = [
+                'ffmpeg',
+                '-framerate', str(fps),
+                '-i', str(Path(temp_dir) / 'frame_%04d.png'),
+                '-c:v', 'libx264',
+                '-pix_fmt', 'yuv420p',
+                '-y',  # Overwrite output file if it exists
+                str(output_path)
+            ]
+
+            subprocess.run(cmd, check=True)
+
+            # Send the video file
+            return send_file(
+                output_path,
+                mimetype='video/mp4',
+                as_attachment=True,
+                download_name=f'shader_{int(output_path.stat().st_mtime)}.mp4'
+            )
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({'error': f'FFmpeg error: {str(e)}'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
