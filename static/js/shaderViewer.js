@@ -30,89 +30,117 @@ class ShaderViewer {
     }
     
     init() {
-        this.renderer.getContext().getExtension('WEBGL_depth_texture');
-        this.renderer.getContext().getExtension('OES_standard_derivatives');
-        
-        this.camera.position.z = 1;
-        this.renderer.setSize(
-            this.renderer.domElement.clientWidth,
-            this.renderer.domElement.clientHeight
-        );
-        
-        this.initCodeEditor();
-        this.loadShaders();
-        this.setupShaderManagement();
-        
-        window.addEventListener('resize', this.onResize.bind(this));
-        this.onResize();
-        
-        this.setupParameterControls();
-        this.animate();
+        try {
+            this.renderer.getContext().getExtension('WEBGL_depth_texture');
+            this.renderer.getContext().getExtension('OES_standard_derivatives');
+            
+            this.camera.position.z = 1;
+            this.renderer.setSize(
+                this.renderer.domElement.clientWidth,
+                this.renderer.domElement.clientHeight
+            );
+            
+            this.initCodeEditor();
+            this.loadShaders();
+            this.setupShaderManagement();
+            
+            window.addEventListener('resize', this.onResize.bind(this));
+            this.onResize();
+            
+            this.setupParameterControls();
+            this.animate();
+        } catch (error) {
+            console.error('Initialization error:', error);
+            this.handleError(error);
+        }
     }
 
     setupShaderManagement() {
-        // Save shader functionality
-        document.getElementById('confirmSaveShader').addEventListener('click', () => {
-            const name = document.getElementById('shaderName').value;
-            if (!name) return;
+        document.getElementById('confirmSaveShader').addEventListener('click', async () => {
+            try {
+                const name = document.getElementById('shaderName').value;
+                if (!name) {
+                    throw new Error('Shader name is required');
+                }
 
-            const code = this.editor.getValue();
-            fetch('/api/shaders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name, code })
-            })
-            .then(response => response.json())
-            .then(shader => {
+                const code = this.editor.getValue();
+                const response = await fetch('/api/shaders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, code })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save shader');
+                }
+
+                const shader = await response.json();
                 this.currentShaderName = shader.name;
                 this.currentShaderId = shader.id;
                 this.updateSaveStatus(true);
                 this.updateShaderNameDisplay();
+                
                 const modal = bootstrap.Modal.getInstance(document.getElementById('saveShaderModal'));
                 modal.hide();
                 document.getElementById('shaderName').value = '';
-            });
+            } catch (error) {
+                console.error('Save error:', error);
+                this.handleError(error);
+            }
         });
 
-        // Load shader list
-        document.getElementById('loadShaderBtn').addEventListener('click', () => {
-            fetch('/api/shaders')
-                .then(response => response.json())
-                .then(shaders => {
-                    const shaderList = document.getElementById('shaderList');
-                    shaderList.innerHTML = '';
-                    shaders.forEach(shader => {
-                        const item = document.createElement('button');
-                        item.className = 'list-group-item list-group-item-action';
-                        item.textContent = shader.name;
-                        item.addEventListener('click', () => this.loadShader(shader.id));
-                        shaderList.appendChild(item);
-                    });
+        document.getElementById('loadShaderBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/shaders');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch shaders');
+                }
+
+                const shaders = await response.json();
+                const shaderList = document.getElementById('shaderList');
+                shaderList.innerHTML = '';
+                shaders.forEach(shader => {
+                    const item = document.createElement('button');
+                    item.className = 'list-group-item list-group-item-action';
+                    item.textContent = shader.name;
+                    item.addEventListener('click', () => this.loadShader(shader.id));
+                    shaderList.appendChild(item);
                 });
+            } catch (error) {
+                console.error('Load list error:', error);
+                this.handleError(error);
+            }
         });
 
-        // Set up real-time code change tracking
         this.editor.on('change', () => {
             this.updateSaveStatus(false);
             this.applyShaderChanges();
         });
     }
 
-    loadShader(shaderId) {
-        fetch(`/api/shaders/${shaderId}`)
-            .then(response => response.json())
-            .then(shader => {
-                this.currentShaderName = shader.name;
-                this.currentShaderId = shader.id;
-                this.editor.setValue(shader.code);
-                this.updateSaveStatus(true);
-                this.updateShaderNameDisplay();
-                this.applyShaderChanges();
-                const modal = bootstrap.Modal.getInstance(document.getElementById('loadShaderModal'));
-                modal.hide();
-            });
+    async loadShader(shaderId) {
+        try {
+            const response = await fetch(`/api/shaders/${shaderId}`);
+            if (!response.ok) {
+                throw new Error('Failed to load shader');
+            }
+
+            const shader = await response.json();
+            this.currentShaderName = shader.name;
+            this.currentShaderId = shader.id;
+            this.editor.setValue(shader.code);
+            this.updateSaveStatus(true);
+            this.updateShaderNameDisplay();
+            this.applyShaderChanges();
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('loadShaderModal'));
+            modal.hide();
+        } catch (error) {
+            console.error('Load shader error:', error);
+            this.handleError(error);
+        }
     }
 
     updateSaveStatus(saved) {
@@ -163,20 +191,24 @@ class ShaderViewer {
         });
     }
     
-    loadShaders() {
-        fetch('/static/shaders/default.vert')
-            .then(response => response.text())
-            .then(vertexShader => {
-                this.vertexShader = vertexShader;
-                fetch('/static/shaders/default.frag')
-                    .then(response => response.text())
-                    .then(fragmentShader => {
-                        this.editor.setValue(fragmentShader);
-                        this.createShaderMaterial(vertexShader, fragmentShader);
-                        this.updateSaveStatus(true);
-                        this.updateShaderNameDisplay();
-                    });
-            });
+    async loadShaders() {
+        try {
+            const vertResponse = await fetch('/static/shaders/default.vert');
+            if (!vertResponse.ok) throw new Error('Failed to load vertex shader');
+            this.vertexShader = await vertResponse.text();
+
+            const fragResponse = await fetch('/static/shaders/default.frag');
+            if (!fragResponse.ok) throw new Error('Failed to load fragment shader');
+            const fragmentShader = await fragResponse.text();
+
+            this.editor.setValue(fragmentShader);
+            this.createShaderMaterial(this.vertexShader, fragmentShader);
+            this.updateSaveStatus(true);
+            this.updateShaderNameDisplay();
+        } catch (error) {
+            console.error('Shader loading error:', error);
+            this.handleError(error);
+        }
     }
     
     createShaderMaterial(vertexShader, fragmentShader) {
@@ -199,6 +231,7 @@ class ShaderViewer {
             this.scene.add(this.currentMesh);
             document.getElementById('error-display').classList.add('d-none');
         } catch (error) {
+            console.error('Shader compilation error:', error);
             this.handleError(error);
         }
     }

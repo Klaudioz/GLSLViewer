@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -20,6 +20,10 @@ def index():
     shaders = Shader.query.all()
     return render_template('index.html', shaders=shaders)
 
+@app.route('/static/shaders/<path:filename>')
+def serve_shader(filename):
+    return send_from_directory('static/shaders', filename)
+
 @app.route('/api/shaders', methods=['GET'])
 def get_shaders():
     shaders = Shader.query.all()
@@ -27,16 +31,25 @@ def get_shaders():
 
 @app.route('/api/shaders', methods=['POST'])
 def save_shader():
-    data = request.get_json()
-    shader = Shader(name=data['name'], code=data['code'])
-    db.session.add(shader)
-    db.session.commit()
-    return jsonify({'id': shader.id, 'name': shader.name, 'code': shader.code})
+    try:
+        data = request.get_json()
+        if not data or 'name' not in data or 'code' not in data:
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        shader = Shader(name=data['name'], code=data['code'])
+        db.session.add(shader)
+        db.session.commit()
+        return jsonify({'id': shader.id, 'name': shader.name, 'code': shader.code})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/shaders/<int:shader_id>', methods=['GET'])
 def get_shader(shader_id):
-    shader = Shader.query.get_or_404(shader_id)
-    return jsonify({'id': shader.id, 'name': shader.name, 'code': shader.code})
+    try:
+        shader = Shader.query.get_or_404(shader_id)
+        return jsonify({'id': shader.id, 'name': shader.name, 'code': shader.code})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

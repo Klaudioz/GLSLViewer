@@ -16,15 +16,22 @@ vec3 hsv(float h, float s, float v) {
 
 void main() {
     vec4 o = vec4(0.0);
-    float i,e,R,s;
-    vec3 q,p,d=vec3(FC.xy/r+vec2(-.5,.4),1);
-    for(q.zy--;i++<99.;){
-        o.rgb+=hsv(e*R,-.6,e/12.);
-        s=1.;
-        p=q+=d*e*R*.3;
-        p=vec3(log2(R=length(p))-t*speed*.5,exp2(-p.z/R-.01),atan(p.y,p.x)*s+cos(t*speed)*.03);
-        for(e=--p.y;s<9e2;s+=s)
-            e+=(dot(sin(p.zzy*s*shape_scale)-.53,.5-sin(p.yzx*s*shape_scale)))/s*.2;
+    float i = 0.0;
+    float e = 0.0;
+    float R = 0.0;
+    float s = 0.0;
+    vec3 q = vec3(0.0);
+    vec3 p;
+    vec3 d = vec3(FC.xy/r+vec2(-.5,.4),1);
+
+    for(q.zy = vec2(-1.0); i < 99.0; i++) {
+        o.rgb += hsv(e*R,-.6,e/12.);
+        s = 1.0;
+        p = q += d*e*R*.3;
+        p = vec3(log2(R=length(p))-t*speed*.5,exp2(-p.z/R-.01),atan(p.y,p.x)*s+cos(t*speed)*.03);
+        for(e = p.y-1.0; s < 900.0; s += s) {
+            e += (dot(sin(p.zzy*s*shape_scale)-.53,.5-sin(p.yzx*s*shape_scale)))/s*.2;
+        }
     }
     gl_FragColor = o;
 }

@@ -1,0 +1,18 @@
+# Core web framework
+Flask==3.0.3
+
+# Database and ORM (for future expansion)
+Flask-SQLAlchemy==3.1.1
+psycopg2-binary==2.9.10
+
+# Form validation
+email-validator==2.2.0
+
+# Development dependencies
+pytest==8.0.0  # For testing
+python-dotenv==1.0.0  # For environment variables
+
+# Additional dependencies
+pygame
+moderngl
+watchdog
