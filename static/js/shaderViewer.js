@@ -198,9 +198,34 @@ class ShaderViewer {
     }
 
     reset() {
+        // Reset clock and time uniforms
         this.clock.start();
         this.time = 0;
         this.uniforms.t.value = 0;
+
+        // Reset all shader parameters to their default values
+        const controls = {
+            'speed': 1.0,
+            'hue_shift': 0.0,
+            'saturation': 1.0,
+            'brightness': 1.0,
+            'shape_scale': 1.0
+        };
+
+        // Update uniform values and UI controls
+        Object.entries(controls).forEach(([param, defaultValue]) => {
+            this.uniforms[param].value = defaultValue;
+            const input = document.getElementById(`${param}-control`);
+            const value = document.getElementById(`${param}-value`);
+            
+            if (input && value) {
+                input.value = defaultValue;
+                value.textContent = defaultValue.toFixed(1);
+            }
+        });
+
+        // Re-render the scene
+        this.renderer.render(this.scene, this.camera);
     }
 
     updateSaveStatus() {
