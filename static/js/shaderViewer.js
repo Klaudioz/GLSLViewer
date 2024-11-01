@@ -10,8 +10,8 @@ class ShaderViewer {
         this.clock = new THREE.Clock();
         this.isPlaying = true;
         this.uniforms = {
-            time: { value: 0 },
-            resolution: { value: new THREE.Vector2() }
+            t: { value: 0 },              // Changed from time to t
+            r: { value: new THREE.Vector2() }  // Changed from resolution to r
         };
         
         this.init();
@@ -88,12 +88,12 @@ class ShaderViewer {
         const height = this.renderer.domElement.clientHeight;
         
         this.renderer.setSize(width, height);
-        this.uniforms.resolution.value.set(width, height);
+        this.uniforms.r.value.set(width, height);  // Changed from resolution to r
     }
     
     animate() {
         if (this.isPlaying) {
-            this.uniforms.time.value = this.clock.getElapsedTime();
+            this.uniforms.t.value = this.clock.getElapsedTime();  // Changed from time to t
         }
         
         this.renderer.render(this.scene, this.camera);
@@ -106,7 +106,7 @@ class ShaderViewer {
     
     reset() {
         this.clock.start();
-        this.uniforms.time.value = 0;
+        this.uniforms.t.value = 0;  // Changed from time to t
     }
 }
 
