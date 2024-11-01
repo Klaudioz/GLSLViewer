@@ -10,9 +10,13 @@ class ShaderViewer {
         this.clock = new THREE.Clock();
         this.isPlaying = true;
         this.uniforms = {
-            t: { value: 0 },              // Changed from time to t
-            r: { value: new THREE.Vector2() }  // Changed from resolution to r
+            t: { value: 0 },
+            r: { value: new THREE.Vector2() }
         };
+        
+        this.editor = null;
+        this.currentMesh = null;
+        this.vertexShader = '';
         
         this.init();
     }
@@ -24,8 +28,8 @@ class ShaderViewer {
             this.renderer.domElement.clientHeight
         );
         
-        // Create plane geometry that fills the view
-        const geometry = new THREE.PlaneGeometry(2, 2);
+        // Initialize CodeMirror
+        this.initCodeEditor();
         
         // Load default shaders
         this.loadShaders();
@@ -34,17 +38,36 @@ class ShaderViewer {
         window.addEventListener('resize', this.onResize.bind(this));
         this.onResize();
         
+        // Setup apply button
+        document.getElementById('applyShaderBtn').addEventListener('click', () => {
+            this.applyShaderChanges();
+        });
+        
         // Start animation loop
         this.animate();
+    }
+    
+    initCodeEditor() {
+        this.editor = CodeMirror.fromTextArea(document.getElementById('shader-code'), {
+            mode: 'x-shader/x-fragment',
+            theme: 'monokai',
+            lineNumbers: true,
+            matchBrackets: true,
+            indentUnit: 4,
+            autoCloseBrackets: true,
+            scrollbarStyle: null
+        });
     }
     
     loadShaders() {
         fetch('/static/shaders/default.vert')
             .then(response => response.text())
             .then(vertexShader => {
+                this.vertexShader = vertexShader;
                 fetch('/static/shaders/default.frag')
                     .then(response => response.text())
                     .then(fragmentShader => {
+                        this.editor.setValue(fragmentShader);
                         this.createShaderMaterial(vertexShader, fragmentShader);
                     });
             });
@@ -58,21 +81,27 @@ class ShaderViewer {
                 uniforms: this.uniforms
             });
             
-            const mesh = new THREE.Mesh(
+            if (this.currentMesh) {
+                this.scene.remove(this.currentMesh);
+            }
+            
+            this.currentMesh = new THREE.Mesh(
                 new THREE.PlaneGeometry(2, 2),
                 material
             );
             
-            this.scene.add(mesh);
-            
-            // Display shader code
-            document.getElementById('shader-code').textContent = fragmentShader;
+            this.scene.add(this.currentMesh);
             
             // Hide error display if it was shown
             document.getElementById('error-display').classList.add('d-none');
         } catch (error) {
             this.handleError(error);
         }
+    }
+    
+    applyShaderChanges() {
+        const newFragmentShader = this.editor.getValue();
+        this.createShaderMaterial(this.vertexShader, newFragmentShader);
     }
     
     handleError(error) {
@@ -88,12 +117,12 @@ class ShaderViewer {
         const height = this.renderer.domElement.clientHeight;
         
         this.renderer.setSize(width, height);
-        this.uniforms.r.value.set(width, height);  // Changed from resolution to r
+        this.uniforms.r.value.set(width, height);
     }
     
     animate() {
         if (this.isPlaying) {
-            this.uniforms.t.value = this.clock.getElapsedTime();  // Changed from time to t
+            this.uniforms.t.value = this.clock.getElapsedTime();
         }
         
         this.renderer.render(this.scene, this.camera);
@@ -106,7 +135,7 @@ class ShaderViewer {
     
     reset() {
         this.clock.start();
-        this.uniforms.t.value = 0;  // Changed from time to t
+        this.uniforms.t.value = 0;
     }
 }
 

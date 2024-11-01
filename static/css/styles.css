@@ -12,17 +12,30 @@
     height: 100%;
 }
 
-.code-display {
-    font-family: monospace;
-    white-space: pre-wrap;
-    background-color: var(--bs-dark);
-    padding: 1rem;
-    border-radius: 4px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
 .controls {
     display: flex;
     gap: 1rem;
+}
+
+/* CodeMirror Styles */
+.CodeMirror {
+    height: 400px;
+    font-family: monospace;
+    font-size: 14px;
+    border-radius: 4px;
+    background-color: var(--bs-dark);
+}
+
+.card-body {
+    padding: 0;
+}
+
+#error-display {
+    margin-top: 1rem;
+}
+
+#error-display pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }

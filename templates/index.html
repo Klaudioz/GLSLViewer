@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GLSL Shader Viewer</title>
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -29,11 +31,14 @@
             
             <div class="col-md-4">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         Shader Code
+                        <button id="applyShaderBtn" class="btn btn-primary btn-sm">
+                            Apply Changes
+                        </button>
                     </div>
                     <div class="card-body">
-                        <div id="shader-code" class="code-display"></div>
+                        <textarea id="shader-code"></textarea>
                     </div>
                 </div>
                 
@@ -46,6 +51,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
     <script src="https://kit.fontawesome.com/your-code.js"></script>
     <script src="{{ url_for('static', filename='js/shaderViewer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/controls.js') }}"></script>
