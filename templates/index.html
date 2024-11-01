@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
+<!-- Previous head content remains the same -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
 </head>
 <body>
     <div class="container py-4">
+        <!-- Previous content remains the same until export modal -->
         <h1 class="mb-4">GLSL Shader Viewer</h1>
         
         <div class="row">
@@ -144,11 +146,16 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="exportDuration" class="form-label">Duration (seconds)</label>
-                        <input type="number" class="form-control" id="exportDuration" value="5" min="1" max="30">
+                        <input type="number" class="form-control" id="exportDuration" value="5" min="2" max="10" step="1">
+                        <div class="invalid-feedback">Duration must be between 2 and 10 seconds</div>
                     </div>
                     <div class="mb-3">
                         <label for="exportFPS" class="form-label">Frames per Second</label>
-                        <input type="number" class="form-control" id="exportFPS" value="30" min="15" max="60">
+                        <select class="form-select" id="exportFPS">
+                            <option value="12">12 FPS</option>
+                            <option value="24">24 FPS</option>
+                            <option value="30" selected>30 FPS</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
