@@ -90,8 +90,8 @@ class ShaderViewer {
 
     async loadShaders() {
         try {
-            const vertResponse = await fetch('/static/shaders/default.vert');
-            const fragResponse = await fetch('/static/shaders/default.frag');
+            const vertResponse = await fetch('/shaders/default.vert');
+            const fragResponse = await fetch('/shaders/default.frag');
 
             if (!vertResponse.ok || !fragResponse.ok) {
                 throw new Error('Failed to load shaders');

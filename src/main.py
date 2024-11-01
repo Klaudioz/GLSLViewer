@@ -6,8 +6,11 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shaders.db'
+app = Flask(__name__, 
+    static_folder='../public',
+    static_url_path='',
+    template_folder='../public')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../instance/shaders.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -22,11 +25,11 @@ with app.app_context():
 @app.route('/')
 def index():
     shaders = Shader.query.all()
-    return render_template('index.html', shaders=shaders)
+    return app.send_static_file('index.html')
 
-@app.route('/static/shaders/<path:filename>')
+@app.route('/shaders/<path:filename>')
 def serve_shader(filename):
-    return send_from_directory('static/shaders', filename)
+    return send_from_directory('../public/shaders', filename)
 
 @app.route('/api/shaders', methods=['GET'])
 def get_shaders():
@@ -103,4 +106,4 @@ def export_video():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001)
